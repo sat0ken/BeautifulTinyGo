@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: review-greenhouse-logger
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  REVIEW.md is a prioritized review of the Raspberry Pi Pico greenhouse logger (main.go)
+  and its si7021 driver that does not modify the code. It finds the problems that kill
+  the device (the heartbeat goroutine that never yields and starves the cooperative
+  scheduler, the unbounded NACK-polling loop in ReadHumidity, the interrupt callback that
+  allocates and prints and shares unsynchronized state, and the history map and logbook
+  that grow forever), the wrong ADC scale (4095 instead of TinyGo's 16-bit range), the
+  per-loop fmt and string allocations, the slices passed to the drivers.I2C interface,
+  the machine import and functional options in the driver, and the full-screen SetPixel
+  redraw on the ST7789. It ranks the hangs above style, cites a file:line location and a
+  named rule with its source for each finding, shows fixes as short code, says what was
+  checked with tools (a pico build, -print-allocs or AllocsPerRun), and says what the code
+  already does well.

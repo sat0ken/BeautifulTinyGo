@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: whack-a-gopher
+expected_outcome: |
+  A koebiten game module that builds for wasm, zero-kb02 and gopher-board-spi; Update
+  holds logic, Draw only draws; timing assumes 32 ms ticks; layout respects the 100-pixel
+  width on gopher-board; a tinygo test with testing.AllocsPerRun shows no per-frame
+  allocation; headless snapshots were taken and inspected.

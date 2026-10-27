@@ -1,0 +1,14 @@
+{
+  "name": "beautiful-tinygo",
+  "owner": {
+    "name": "satoken"
+  },
+  "description": "Skills for writing beautiful, small, robust TinyGo with Claude.",
+  "plugins": [
+    {
+      "name": "beautiful-tinygo",
+      "source": "./",
+      "description": "Skills that teach Claude to write TinyGo for microcontrollers, preview display programs in WebAssembly, make koebiten games, port Arduino, ESP-IDF, Moddable SDK and Arduboy code, and review TinyGo code."
+    }
+  ]
+}

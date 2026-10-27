@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: gauge-display-preview
+expected_outcome: |
+  A TinyGo program for a Waveshare RP2040-Zero with a 240x240 ST7789 that draws a
+  temperature gauge, split into logic without machine, a hardware setup file and a wasm
+  setup file; the WebAssembly preview is built and the headless capture is run and
+  inspected; the firmware build passes and drawing avoids full-screen SetPixel loops.

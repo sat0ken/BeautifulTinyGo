@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: refactor-big-go
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  main.go is refactored for the Pico: no fmt or encoding/json, no unbounded busy-wait, ADC
+  values scaled from 65535, no goroutine-per-sensor busy loops, no map or growing slice in
+  the loop, integer or float32 math, and the program builds for -target=pico with a
+  smaller binary; the answer lists each change with its reason.

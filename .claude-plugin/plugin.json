@@ -1,0 +1,27 @@
+{
+  "name": "beautiful-tinygo",
+  "version": "0.4.0",
+  "description": "Write, preview, port and review small, robust TinyGo: four skills distilled from the TinyGo documentation, tinygo.org/x/drivers conventions and Effective Go, with a WebAssembly preview for display programs, koebiten game support, porting from Arduino, ESP-IDF, Moddable SDK and Arduboy, and reviews that cite named TinyGo rules.",
+  "license": "MIT",
+  "author": {
+    "name": "satoken"
+  },
+  "keywords": [
+    "tinygo",
+    "embedded",
+    "microcontroller",
+    "drivers",
+    "webassembly",
+    "koebiten",
+    "arduino",
+    "arduboy",
+    "porting",
+    "code-review",
+    "skill",
+    "best-practices",
+    "esp-idf",
+    "esp32",
+    "moddable",
+    "freertos"
+  ]
+}

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: port-arduboy-game
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  StarCatch.ino is ported to koebiten: sprites and bitmaps keep their exact bytes and are
+  drawn with Arduboy semantics (for example through the skill's arduboy.Canvas), speeds
+  and frame counts are adjusted from 60 FPS to koebiten's 32 ms tick, buttons map to
+  koebiten keys, sound and EEPROM are handled or documented, the MIT notice is kept, wasm
+  and zero-kb02 builds pass, snapshots were inspected, and PORTING.md exists.

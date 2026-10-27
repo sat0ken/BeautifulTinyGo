@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: port-arduino-sketch
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  plant_monitor.ino is ported to TinyGo for the Raspberry Pi Pico with the same serial
+  output format, debounce and 2-second schedule without delay, ADC rescaled from TinyGo's
+  16-bit range with the calibration preserved, the BH1750 read via
+  tinygo.org/x/drivers/bh1750 or zero-allocation I2C calls, PWM for the LED, the threshold
+  persisted in flash or the gap documented, host tests for the moisture math, and a
+  PORTING.md.

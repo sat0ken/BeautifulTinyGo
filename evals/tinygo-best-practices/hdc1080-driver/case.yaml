@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: hdc1080-driver
+expected_outcome: |
+  A Go package hdc1080 that builds with TinyGo, follows the TinyGo driver design rules
+  (Device type, New taking a drivers.I2C, Configure returning error, no machine import,
+  buffers in the struct, integer results, bounded waits), implements the drivers.Sensor
+  Update pattern, has host tests for the conversion math, and an example program that
+  builds for the Raspberry Pi Pico with no allocations reported in the driver.

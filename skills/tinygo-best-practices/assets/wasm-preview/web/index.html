@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TinyGo preview</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f4f4f2; --fg: #222; --panel: #1b1b1b; --muted: #777; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161616; --fg: #e8e8e8; --panel: #000; --muted: #999; } }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
+         font: 14px/1.5 system-ui, sans-serif; }
+  main { display: grid; gap: 12px; justify-items: center; padding: 16px; }
+  .bezel { background: var(--panel); padding: 14px; border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,.35); }
+  canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  #status { color: var(--muted); font-variant-numeric: tabular-nums; }
+  kbd { border: 1px solid var(--muted); border-radius: 4px; padding: 0 5px; font-size: 12px; }
+</style>
+<script src="wasm_exec.js"></script>
+<script src="preview.js" defer></script>
+</head>
+<body>
+<main>
+  <div class="bezel"><canvas id="screen" width="1" height="1"></canvas></div>
+  <div id="status">loading main.wasm…</div>
+  <div id="keys">Keys go to the program as KeyboardEvent.key, for example <kbd>←</kbd> <kbd>→</kbd> <kbd>z</kbd> <kbd>x</kbd> <kbd>c</kbd></div>
+</main>
+</body>
+</html>
