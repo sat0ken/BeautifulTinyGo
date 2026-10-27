@@ -43,23 +43,23 @@ All three images were produced by `tools/capture.cjs` without a browser.
 
 ## Install in Claude Code
 
-From a terminal (replace `OWNER` with the GitHub account that hosts this repository):
+From a terminal:
 
 ```
-claude plugin install beautiful-tinygo --marketplace OWNER/BeautifulTinyGo
+claude plugin install beautiful-tinygo --marketplace sat0ken/BeautifulTinyGo
 ```
 
 Or inside a Claude Code session:
 
 ```
-/plugin marketplace add OWNER/BeautifulTinyGo
+/plugin marketplace add sat0ken/BeautifulTinyGo
 /plugin install beautiful-tinygo@beautiful-tinygo
 ```
 
 To try it for one session without installing:
 
 ```
-git clone https://github.com/OWNER/BeautifulTinyGo
+git clone https://github.com/sat0ken/BeautifulTinyGo
 claude --plugin-dir ./BeautifulTinyGo
 ```
 

@@ -41,23 +41,23 @@ python3 -m http.server 8080 --directory web   # http://localhost:8080
 
 ## Claude Code へのインストール
 
-ターミナルから実行します（`OWNER` はこのリポジトリを置く GitHub アカウントに置き換えてください）。
+ターミナルから実行します。
 
 ```
-claude plugin install beautiful-tinygo --marketplace OWNER/BeautifulTinyGo
+claude plugin install beautiful-tinygo --marketplace sat0ken/BeautifulTinyGo
 ```
 
 Claude Code のセッション内からなら、次のとおりです。
 
 ```
-/plugin marketplace add OWNER/BeautifulTinyGo
+/plugin marketplace add sat0ken/BeautifulTinyGo
 /plugin install beautiful-tinygo@beautiful-tinygo
 ```
 
 インストールせずに1セッションだけ試す場合は、次のようにします。
 
 ```
-git clone https://github.com/OWNER/BeautifulTinyGo
+git clone https://github.com/sat0ken/BeautifulTinyGo
 claude --plugin-dir ./BeautifulTinyGo
 ```
 
