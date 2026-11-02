@@ -50,6 +50,38 @@ unused globals disappear, and data that is never written is marked constant so i
 in flash instead of RAM. Write tables (fonts, sprites, waveforms) as package-level
 composite literals and never mutate them.
 
+*Observed with the TinyGo 0.43.0 release build while updating this skill:* "never written"
+is not enough when the table holds slices. Programs that read 8 KB of table data in their
+loop put this much in `.data` (RAM; the `data` column of `-size short`):
+
+| The table (8 KB of bytes) | `pico` | `esp32-generic` |
+|---|---|---|
+| none (the rest of the program) | 124 B | 64 B |
+| `var t = []byte{...}` | 124 B | 64 B |
+| `var t = []string{...}` (128 strings of 64 bytes) | 124 B | 64 B |
+| `//go:embed t.bin` into a `string` | 124 B | 64 B |
+| `var t = [][]byte{...}` (128 slices of 64 bytes) | 8,316 B | 8,256 B |
+| `var t = []glyph{...}` (128 structs with a 64-byte `[]byte` field) | 8,316 B | 8,256 B |
+| tinyfont 0.7.0 `freesans.Bold9pt7b`, drawn with `tinyfont.WriteLine` (no table of our own) | 3,680 B | 3,620 B |
+
+So a table of slices, including tinyfont's fonts, costs its whole size in RAM. In
+github.com/sat0ken/tinygo-esp32-cyd five tinyfont fonts took 28 KB of RAM on an ESP32 (of
+192 KB); the same glyphs stored as two strings per font (an index and the bitmaps) took
+under 1 KB. Keep big tables flat (one `[]byte` and offsets) or make them strings.
+
+Large binary data written as a Go string literal takes four bytes of source per byte
+(`\xNN`). `//go:embed` of a binary file into a `string` keeps the data in flash and the
+repository small. (A `.gitignore` with `*.bin` for firmware images also ignores `.bin`
+assets: name them `.dat`.)
+
+## Flash budget
+
+Images, fonts and level data add up. When the program no longer fits, the link fails with
+a message that `.rodata` does not fit in its flash region (TinyGo 0.44 for ESP32, 4 MB of
+flash: `section '.rodata' will not fit in region 'DROM'`). Measure with `-size short`, and
+leave large assets out on the smaller boards with build tags (the board's tag from its
+target JSON) rather than shrinking every board's build.
+
 ## Binary size
 
 - The default optimization level already targets size (`-opt=z`).

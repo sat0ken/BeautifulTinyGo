@@ -2,15 +2,15 @@
 
 [English](README.md)
 
-Claude に TinyGo の書き方を教える Claude Code プラグインです。マイコン向けに小さく、壊れにくく、Go らしいコードを書かせます。あわせて、液晶を使うプログラムを書き込み前にブラウザで確認させ、[koebiten](https://github.com/sago35/koebiten) のゲームを作らせ、Arduino、ESP-IDF、Moddable SDK、Arduboy のコードを移植させ、TinyGo のコードをレビューさせます。[BeautifulRust](https://github.com/morganlinton/BeautifulRust) を手本にしています。
+Claude に TinyGo の書き方を教える Claude Code プラグインです。マイコン向けに小さく、壊れにくく、Go らしいコードを書かせます。あわせて、液晶を使うプログラムを書き込み前にブラウザで確認させ、[koebiten](https://github.com/sago35/koebiten) のゲームを作らせ、Arduino、ESP-IDF、Moddable SDK、Arduboy、PicoLibSDK のような C のゲーム SDK のコードを移植させ、TinyGo のコードをレビューさせます。[BeautifulRust](https://github.com/morganlinton/BeautifulRust) を手本にしています。
 
-TinyGo、ボード、`machine`、tinygo.org/x/drivers、koebiten、`.ino` ファイル、ESP-IDF のプロジェクト、Moddable の `main.js`、Arduboy のゲームが話題に出ると、スキルは自動で読み込まれます。
+TinyGo、ボード、`machine`、tinygo.org/x/drivers、koebiten、`.ino` ファイル、ESP-IDF のプロジェクト、Moddable の `main.js`、Arduboy のゲーム、PicoLibSDK のゲームが話題に出ると、スキルは自動で読み込まれます。
 
 | スキル | 用途 |
 |---|---|
 | `tinygo-best-practices` | TinyGo のコード全般。メモリとアロケーション、標準ライブラリ、スケジューラと割り込み、`machine` パッケージ、ドライバ、液晶、バイナリサイズ、テスト。液晶を使うプログラムは WebAssembly プレビューでの確認が必須 |
 | `koebiten-games` | 128×64 画面のミニゲーム。zero-kb02 などの TinyGo Keeb キーボード、gopher-board、Gopher Badge、PyBadge、Wio Terminal、ブラウザ |
-| `tinygo-port` | Arduino のスケッチやライブラリ（M5Stack の Arduino コードを含む）、ESP-IDF のプログラム（FreeRTOS のタスク、IDF のドライバ、NVS、Wi-Fi）、Moddable SDK のプログラム（ECMA-419 の IO、センサークラス、Timer、Preference、Poco/Piu）、Arduboy のゲームを、同じ動作のまま TinyGo へ移植 |
+| `tinygo-port` | Arduino のスケッチやライブラリ（M5Stack の Arduino コードを含む）、ESP-IDF のプログラム（FreeRTOS のタスク、IDF のドライバ、NVS、Wi-Fi）、Moddable SDK のプログラム（ECMA-419 の IO、センサークラス、Timer、Preference、Poco/Piu）、Arduboy のゲーム、PicoLibSDK のような SDK の上の C のゲームを、同じ動作のまま TinyGo へ移植 |
 | `tinygo-review` | 既存の TinyGo のコード、リポジトリ、プルリクエストのレビュー。重要度順（Must fix / Should fix / Consider / 良い点）の報告を作り、各指摘に `ファイル:行`、ルール一覧の ID と出典、ビルドやアロケーション確認の結果、修正コードを付ける。ファイルは変更しない |
 
 **TinyGo 0.43** と **tinygo.org/x/drivers 0.36**（2026年10月）を前提に書いています。
@@ -105,7 +105,15 @@ Linux 上の TinyGo 0.43.0（LLVM 19、Go 1.26）で確認しました。
   - tinygo.org/x/espradio を使う Wi-Fi のプログラム（接続して `net.Dial`）も ESP32-C3 向けにビルドできる
   - 移植元の ESP-IDF と Moddable のプログラムはビルドしていない（環境に IDF と Moddable のツールチェーンがないため）
 
-実機ではまだ動かしていません。
+このほか、次のことを確かめました。
+
+- `tinygo-memory-and-size.md` の定数データの数字（スライスの表は RAM に写される、平らな表・文字列・`//go:embed` のデータはフラッシュに残る、tinyfont のフォントは RAM に置かれる）
+  - TinyGo 0.43.0 のリリース版で、`pico` と `esp32-generic` 向けに測った（tinyfont 0.7.0）
+- `tinygo-port/references/c-games-to-tinygo.md` は [tinygo-esp32-cyd](https://github.com/sat0ken/tinygo-esp32-cyd) をまとめたもの
+  - そのテストは、移植したゲームを、ホストでコンパイルした元の C と比べている（TinyGo 0.44）
+  - ゲームは作者が実機で動かした
+
+それ以外は、実機ではまだ動かしていません。
 
 ## スキルのテスト
 

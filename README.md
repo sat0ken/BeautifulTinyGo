@@ -5,18 +5,18 @@
 A Claude Code plugin that teaches Claude to write small, robust, idiomatic
 [TinyGo](https://tinygo.org/) for microcontrollers, to check display programs in a
 browser before flashing them, to make [koebiten](https://github.com/sago35/koebiten)
-games, to port Arduino, ESP-IDF, Moddable SDK and Arduboy code, and to review TinyGo
-code. It is modelled on [BeautifulRust](https://github.com/morganlinton/BeautifulRust).
+games, to port Arduino, ESP-IDF, Moddable SDK, Arduboy and C game SDK (PicoLibSDK) code,
+and to review TinyGo code. It is modelled on [BeautifulRust](https://github.com/morganlinton/BeautifulRust).
 
 The skills load on their own whenever a task involves TinyGo, a board, `machine`,
-tinygo.org/x/drivers, koebiten, an `.ino` file, an ESP-IDF project, a Moddable `main.js`
-or an Arduboy game.
+tinygo.org/x/drivers, koebiten, an `.ino` file, an ESP-IDF project, a Moddable `main.js`,
+an Arduboy game or a PicoLibSDK game.
 
 | Skill | Use it for |
 |---|---|
 | `tinygo-best-practices` | Any TinyGo code: memory and allocation, the standard library, scheduling and interrupts, the `machine` package, drivers, displays, binary size, testing. Display programs must pass a WebAssembly preview. |
 | `koebiten-games` | Mini games on 128×64 screens: zero-kb02 and other TinyGo Keeb keyboards, gopher-board, Gopher Badge, PyBadge, Wio Terminal, and the browser. |
-| `tinygo-port` | Arduino sketches and libraries (including M5Stack Arduino code), ESP-IDF programs (FreeRTOS tasks, IDF drivers, NVS, Wi-Fi), Moddable SDK programs (ECMA-419 IO, sensor classes, Timer, Preference, Poco/Piu) and Arduboy games, moved to TinyGo with the same behavior. |
+| `tinygo-port` | Arduino sketches and libraries (including M5Stack Arduino code), ESP-IDF programs (FreeRTOS tasks, IDF drivers, NVS, Wi-Fi), Moddable SDK programs (ECMA-419 IO, sensor classes, Timer, Preference, Poco/Piu), Arduboy games and C games on console SDKs such as PicoLibSDK, moved to TinyGo with the same behavior. |
 | `tinygo-review` | Reviews of existing TinyGo code, repositories and pull requests: a prioritized report (Must fix / Should fix / Consider / What's already good) where each finding cites `file:line`, a rule ID with its source from the rule catalog, evidence from builds and allocation checks, and a code fix. It does not change your files. |
 
 Written against **TinyGo 0.43** and **tinygo.org/x/drivers 0.36** (October 2026).
@@ -104,7 +104,7 @@ BeautifulTinyGo/
 │   ├── tinygo-port/
 │   │   ├── SKILL.md
 │   │   ├── references/        arduino-to-tinygo, espidf-to-tinygo, moddable-to-tinygo,
-│   │   │                      arduboy-to-koebiten
+│   │   │                      arduboy-to-koebiten, c-games-to-tinygo
 │   │   └── assets/arduboy-compat/      arduboy.Canvas (Arduboy2 drawing in Go) + example
 │   └── tinygo-review/
 │       ├── SKILL.md
@@ -142,7 +142,18 @@ With TinyGo 0.43.0 (LLVM 19, Go 1.26) on Linux:
   ESP32-C3. ESP-IDF and Moddable originals were not built (no IDF or Moddable toolchain
   in the environment).
 
-Nothing has been run on real hardware yet.
+Also checked:
+
+- The constant-data figures in `tinygo-memory-and-size.md` (tables of slices copied into
+  RAM, flat tables, strings and `//go:embed` data left in flash, a tinyfont font in RAM)
+  were measured with the TinyGo 0.43.0 release build for `pico` and `esp32-generic`, with
+  tinyfont 0.7.0.
+- `tinygo-port/references/c-games-to-tinygo.md` summarizes
+  [tinygo-esp32-cyd](https://github.com/sat0ken/tinygo-esp32-cyd), whose tests compare
+  each port with the original C compiled on the host (TinyGo 0.44). Its author ran the
+  games on hardware.
+
+Apart from those games, nothing has been run on real hardware yet.
 
 ## Testing the skills
 
@@ -205,6 +216,8 @@ written for this project; they link to the originals, which have the full reason
 | [ESP-IDF](https://github.com/espressif/esp-idf) API reference | Espressif Systems | Apache-2.0 | API facts for the ESP-IDF mapping |
 | [Moddable SDK](https://github.com/Moddable-OpenSource/moddable) documentation, modules and host providers | Moddable Tech | runtime LGPL-3.0, examples CC BY 4.0, docs as published | API facts for the Moddable mapping; the worked example is modelled on `examples/io/digital/button` (CC BY 4.0) |
 | [tinygo.org/x/espradio](https://github.com/tinygo-org/espradio) | The TinyGo Authors | BSD-3-Clause | API facts for Wi-Fi and BLE on ESP chips |
+| [PicoLibSDK](https://github.com/Panda381/PicoLibSDK) | Miroslav Nemecek | Unlicense (its own code; TINYGAME is GPLv3) | API facts and the original games of the worked example in `c-games-to-tinygo.md` |
+| [tinygo-esp32-cyd](https://github.com/sat0ken/tinygo-esp32-cyd) | sat0ken | MIT | the worked example in `c-games-to-tinygo.md` and the palette frame buffer |
 | [BeautifulRust](https://github.com/morganlinton/BeautifulRust) | Morgan Linton | MIT | the idea and the plugin/eval layout |
 
 The skill text, digests, templates, tools and images in this repository are MIT licensed

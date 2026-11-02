@@ -2,7 +2,7 @@
 name: tinygo-review
 description: >-
   Review existing TinyGo code (firmware, drivers, koebiten games, ports from Arduino,
-  ESP-IDF or Moddable) for what breaks on a microcontroller: hangs, heap growth,
+  ESP-IDF, Moddable or C game SDKs) for what breaks on a microcontroller: hangs, heap growth,
   interrupt misuse, wrong values, size and speed, driver conventions and testability,
   and produce a prioritized report where every finding cites a location, a named rule
   with its source, and a concrete fix. Use this whenever the user asks to review, audit,
@@ -38,8 +38,8 @@ source the reader can look up. Read it before you start, and cite its IDs.
   - *Driver or library* meant to be shared or upstreamed: the TG-DRV rules apply strictly.
   - *Application firmware*: stability and memory rules first; driver-style rules only
     where they affect testability.
-  - *koebiten game*: add the KB rules. *Port from Arduino, Arduboy, ESP-IDF or Moddable*:
-    add the PORT rules and compare with the original if it is available.
+  - *koebiten game*: add the KB rules. *Port from Arduino, Arduboy, ESP-IDF, Moddable or
+    a C game SDK*: add the PORT rules and compare with the original if it is available.
 - **The project's own rules.** Read CLAUDE.md, AGENTS.md, CONTRIBUTING.md and docs
   describing deliberate choices. They win over this skill's defaults; a documented
   workaround (for a TinyGo bug, a board quirk) is a Consider finding at most.
@@ -114,8 +114,8 @@ TG-DISP-SETPIXEL, TG-DISP-REDRAW, TG-DISP-RAM, TG-DISP-DISPLAY)
   way to check it off the board; error strings, doc comments, names.
 
 For koebiten games, check KB-TICK, KB-WIDTH, KB-SPLIT, KB-HUD and KB-PIXEL-HELPERS. For
-ports, check PORT-BEHAVIOR, PORT-TASKS, PORT-PLATFORM, PORT-FPS and PORT-LICENSE against
-the original.
+ports, check PORT-BEHAVIOR, PORT-TASKS, PORT-PLATFORM, PORT-FPS, PORT-C-SEMANTICS,
+PORT-ASSETS and PORT-LICENSE against the original.
 
 ## 4. Write the report
 

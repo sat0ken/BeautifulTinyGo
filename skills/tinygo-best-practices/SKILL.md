@@ -112,10 +112,16 @@ Know what defeats it (details in `references/tinygo-memory-and-size.md`):
   goroutines.
 - **Large locals.** Objects above TinyGo's stack-object size limit (a few hundred bytes)
   go to the heap. A 1 KB scratch array belongs in a struct that is allocated once.
-- **Constant tables go in flash.** TinyGo evaluates package-level initializers at compile
-  time when it can, and data that is never written can stay in flash instead of RAM.
-  Keep fonts, bitmaps, note tables and lookup tables as package-level arrays and do not
-  write to them.
+- **Constant tables go in flash, if they are flat.** TinyGo evaluates package-level
+  initializers at compile time when it can, and data that is never written can stay in
+  flash instead of RAM. Keep fonts, bitmaps, note tables and lookup tables as
+  package-level arrays and do not write to them. But a table whose elements hold slices
+  (`[][]byte`, a slice of structs with a `[]byte` field, the glyph tables of tinyfont's
+  fonts) is copied into RAM even when nothing writes to it. Keep big tables flat (one
+  `[]byte` and a table of offsets) or make them strings (`[]string`, or one `string` with
+  offsets), and load large binary data with `//go:embed` into a `string`. The `data`
+  column of `-size short` shows what went to RAM (measurements in
+  `references/tinygo-memory-and-size.md`).
 - The garbage collector is much slower than big Go's and works less well on very small
   chips (AVR) and WebAssembly. Design so it rarely has anything to do.
 
@@ -233,6 +239,15 @@ Follow TinyGo's Driver Design guide (digest: `references/tinygo-driver-design.md
   only that (dirty flags or rectangles). Clear the screen once, not every frame.
 - **Budget RAM before choosing a frame buffer.** 240×240 RGB565 is 115,200 bytes,
   320×240 is 153,600: fine on RP2040 or ESP32-S3 (with care), impossible on a 32 KB SAMD21.
+- **When an RGB565 frame buffer does not fit, keep palette indices.** One byte a pixel
+  (76,800 bytes at 320×240) and a palette of 256 RGB565 colours: give a colour an index
+  the first time it is drawn, use the nearest entry once all 256 are taken, and free them
+  all when the whole screen is cleared. In `Display()`, convert only the changed
+  rectangle, a band of a few rows at a time, into a small RGB565 buffer for
+  `DrawRGBBitmap8` (two buffers if the driver sends one by DMA while you fill the other).
+  For pictures with more than 256 colours, choose the palette ahead of time for each
+  screen (median cut). On an ESP32 without PSRAM this left about 104 KB of heap where a
+  320×240 RGB565 buffer left 38 KB (github.com/sat0ken/tinygo-esp32-cyd, `picopad`).
 - **Call `Display()` at the end of every frame** even on unbuffered panels: it is free
   there, and buffered panels and the browser preview need it.
 - Let the application depend on a small interface such as
@@ -319,6 +334,8 @@ container), the rules above take precedence.
 - [ ] No allocations in the main loop, per-frame/per-scan paths or interrupt handlers
       (`-print-allocs` checked, and `testing.AllocsPerRun` for loop bodies).
 - [ ] No `fmt`, `encoding/json` or reflection-heavy imports without a stated reason.
+- [ ] Large constant tables are flat or strings, so they stay in flash (`data` column of
+      `-size short` checked).
 - [ ] Every wait is bounded and yields; no busy loop without `time.Sleep`/`Gosched`.
 - [ ] Interrupt handlers only record events; shared state is atomic or volatile.
 - [ ] `machine` appears only in `hw_*.go`/`main` set-up; logic is host-testable.

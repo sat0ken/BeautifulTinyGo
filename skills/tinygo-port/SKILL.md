@@ -6,11 +6,12 @@ description: >-
   tasks and queues, gpio, i2c_master, spi_master, ledc, adc_oneshot, uart, esp_timer,
   NVS, esp_wifi, sdkconfig, idf.py components), Moddable SDK programs (JavaScript on XS,
   manifest.json, mcconfig, ECMA-419 embedded:io and embedded:sensor, device host
-  providers, pins/*, Timer, Preference, Poco, Piu) and Arduboy games (Arduboy2, Sprites,
-  ArduboyTones) to TinyGo, keeping the original behavior on the user's board. Use this
-  whenever the user asks to port, convert, translate, rewrite or "move" Arduino, ESP-IDF,
-  FreeRTOS, Moddable or Arduboy code to TinyGo or Go on a microcontroller, or asks what
-  such code would look like in TinyGo. Arduboy games land on koebiten. Pairs with
+  providers, pins/*, Timer, Preference, Poco, Piu), Arduboy games (Arduboy2, Sprites,
+  ArduboyTones) and C games on a console SDK (PicoLibSDK's PicoPad games) to TinyGo,
+  keeping the original behavior on the user's board. Use this whenever the user asks to
+  port, convert, translate, rewrite or "move" Arduino, ESP-IDF, FreeRTOS, Moddable,
+  Arduboy, PicoLibSDK or other C game code to TinyGo or Go on a microcontroller, or asks
+  what such code would look like in TinyGo. Arduboy games land on koebiten. Pairs with
   tinygo-best-practices (target code style) and koebiten-games (the game runtime).
 ---
 
@@ -22,6 +23,12 @@ or not at all and keeps every problem the original had: a sketch's `setup()`/`lo
 globals, `delay()` scheduling and `String` concatenation; an ESP-IDF program's task per
 concern, queues, `ESP_ERROR_CHECK` and `sdkconfig` plumbing; a Moddable program's
 callbacks, objects per sample and template strings. Port the behavior, not the structure.
+
+One exception: a whole program written against a console SDK that runs its own loop
+(PicoLibSDK's PicoPad games, and C game SDKs like it). There the loop, its timing and its
+random numbers are the behavior, and a game of a thousand lines is easier to get right,
+and to check, when it is translated function by function onto a package that offers the
+SDK's API in Go. §8 says how.
 
 ## 1. Understand the original before writing anything
 
@@ -85,6 +92,13 @@ Most firmware has no tests, so write characterization tests before porting the l
 - For serial output, write down the exact expected lines and compare.
 - For display programs and games, the WebAssembly preview snapshots are the visual tests
   (tinygo-best-practices §9, koebiten-games §7).
+- **Compare with the original, frame by frame.** When the original is C or C++ whose
+  platform layer can be stubbed (drawing, sound, buttons, time), compile it on the host
+  with a stub header, give it the same random generator and seed and a scripted input,
+  print a checksum of its state every N frames, and have a Go test compute the same
+  checksums from the port. This finds what no screenshot shows (a `float` rounded the
+  other way at frame 5,085, arguments evaluated in another order). The recipe and its
+  pitfalls are in `references/c-games-to-tinygo.md`.
 
 ## 4. Port
 
@@ -103,6 +117,10 @@ Use the mapping tables:
   modules, JavaScript number semantics, and a worked example.
 - `references/arduboy-to-koebiten.md`: Arduboy2, Sprites and ArduboyTones to koebiten,
   using the `assets/arduboy-compat/arduboy` package for pixel-exact bitmaps and sprites.
+- `references/c-games-to-tinygo.md`: C programs on a console SDK (PicoLibSDK): when to
+  keep the loop, the compatibility package, C semantics to carry over, comparing with the
+  original compiled on the host, third-party assets, memory and flash, and a worked
+  example of 19 games.
 
 General rules:
 
@@ -124,7 +142,10 @@ General rules:
 - Keep numeric behavior: use the same integer widths where overflow or wrap-around is part
   of the behavior (an AVR `int` is 16 bits; use `int16`; JavaScript bitwise operators are
   32-bit). Replace floats with integer milli-units where the chip has no FPU, and record
-  rounding differences in printed values.
+  rounding differences in printed values. From C: `float` stays `float32` (compute
+  `sinf`, `atan2f` and the like with `math` in `float64` and convert), and the order in
+  which a call's arguments are evaluated is unspecified in C and differs between
+  compilers, which matters when two arguments draw random numbers.
 - Rescale analog values on purpose: TinyGo's ADC returns 16-bit values everywhere, with no
   calibration, and ESP chips use one fixed attenuation.
 - Error codes, `esp_err_t`, `bool` success flags and exceptions become `error` values; a
@@ -201,7 +222,33 @@ screen and keys. So:
   exactly as written, the simplest faithful port), or rescale the values (double per-frame
   speeds, halve frame counts). Doing neither makes the game run at half speed.
 
-## 8. Licensing
+## 8. C programs on a console SDK
+
+Some C games are complete programs on a vendor SDK: PicoLibSDK's PicoPad games call
+`DrawImgPal`, `DispUpdate`, `KeyGet`, `WaitMs` and `RandU16` from their own `while (True)`
+loop and keep their state in globals. Restructuring them into update and draw callbacks
+breaks the correspondence that lets you check the port line by line, so:
+
+- write (or reuse) a **compatibility package** that offers the SDK's functions with the
+  same names and arguments as methods of a console type, on a tinygo.org/x/drivers-style
+  display: drawing into a frame buffer with the SDK's clipping rules, the SDK's key scan
+  (its repeat and release timings), time through a replaceable clock, and the SDK's random
+  generator, so that the same seed gives the same game;
+- embed the console in the game's struct, turn the C globals into its fields and the
+  functions into methods, and keep the loop;
+- make the C code's busy waits yield: `while (KeyGet() == NOKEY) {}` freezes the
+  WebAssembly preview, so let `KeyGet`, `KeyPressed` and `Time` sleep a millisecond when
+  the program has not slept for a while;
+- convert the C image arrays with a generator into strings or embedded files, which stay
+  in flash (tinygo-best-practices §3);
+- compare the port with the original compiled on the host (§3), and keep the C game's
+  quirks unless the user agrees to change them.
+
+`references/c-games-to-tinygo.md` has the details and the numbers from a worked example
+(github.com/sat0ken/tinygo-esp32-cyd: 19 PicoLibSDK games on ESP32 boards and in the
+browser).
+
+## 9. Licensing
 
 Check the original's license before porting, keep its copyright notice and license in
 the port, and put the attribution in PORTING.md and the README:
@@ -219,10 +266,17 @@ the port, and put the attribution in PORTING.md and the README:
   derivative work: keep it under the LGPL (or a compatible license) and say so, or write the driver from
   the datasheet instead and only use the original to compare behavior. Tell the user
   which one you did.
+- **Assets are licensed apart from the code.** Permissively licensed games can still
+  carry pictures, logos, level data or titles that belong to others (characters from
+  films, the logo of a commercial game, levels taken from another game), and an SDK can
+  ship a GPL directory next to Unlicense code. Look at the pictures and the data, not only
+  the file headers. Leave such assets (or the game) out, or draw replacements at the same
+  size and frame count (so hit boxes stay the same) and rename trademarked titles; list
+  them in PORTING.md.
 - The user's own program, ported for themselves, needs only their own decision; the rules
   above matter when copied third-party code ends up in the port.
 
-## 9. Deliver
+## 10. Deliver
 
 1. Build for the user's target with `-size short`; for display programs and games also
    build the WebAssembly preview and look at the snapshots. Script the keys so every
@@ -240,7 +294,7 @@ the port, and put the attribution in PORTING.md and the README:
    - licenses of the original code used, and how they are honored;
    - what could not be verified without hardware or without a toolchain for the chip.
 
-## 10. Checklist
+## 11. Checklist
 
 - [ ] Original behavior listed, including timing, concurrency, serial output and analog
       scaling.
@@ -254,6 +308,9 @@ the port, and put the attribution in PORTING.md and the README:
 - [ ] Interrupt handlers only record events; callbacks run from the loop in order.
 - [ ] Configuration values are named constants with their source; no credentials in code.
 - [ ] Arduboy: `arduboy.Canvas` for drawing, 60→31 FPS scaling handled.
-- [ ] Licenses checked and honored (§8).
+- [ ] C programs on an SDK: a compatibility package with the SDK's names, the loop kept,
+      C semantics carried over, and the state compared with the original compiled on the
+      host (§3, §8).
+- [ ] Licenses checked and honored, including third-party pictures, data and titles (§9).
 - [ ] Target build passes (or type-checks, with the reason); display programs previewed;
       `PORTING.md` written.

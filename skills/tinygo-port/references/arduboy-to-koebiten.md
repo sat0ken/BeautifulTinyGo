@@ -54,6 +54,10 @@ and zero-kb02 builds verified).
 
 - Copy PROGMEM arrays as Go byte slices: `const unsigned char PROGMEM ship[] = {16, 8, ...};`
   → `var ship = []byte{16, 8, ...}`. Keep the order and the header bytes exactly.
+- A table of pointers to them (`const unsigned char* const frames[] = {a, b, c};`) must
+  not become a `[][]byte`: TinyGo copies a table of slices into RAM even when nothing
+  writes to it (tinygo-best-practices §3). Index the separate variables with a `switch`, or
+  keep one `[]byte` with an offset table.
 - Formats (from Arduboy2's documentation):
   - `drawBitmap`: no header; each byte is a vertical strip of 8 pixels, bit 0 on top;
     rows of `w` bytes; `h` a multiple of 8. Set bits get the colour, clear bits are left.

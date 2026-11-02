@@ -191,12 +191,19 @@ usually **Should fix** otherwise (fragmentation, GC pauses).
   if floats are needed.
 - **Source:** [Driver Design] › General guidelines (floating point). §4.
 
-### TG-CONST-DATA — Constant tables stay constant
+### TG-CONST-DATA — Constant tables stay constant, and flat
 - **Look for:** lookup tables, fonts, bitmaps built at start-up or written to after
-  initialization.
+  initialization; large tables whose elements hold slices (`[][]byte`, slices of structs
+  with a slice field, tinyfont fonts).
 - **Why:** TinyGo evaluates package-level initializers at compile time and can keep data
-  that is never written in flash instead of RAM.
-- **Source:** [Differences from Go] (globals). §3.
+  that is never written in flash instead of RAM, but a table of slices is copied into RAM
+  even when nothing writes to it (TinyGo 0.43: 8 KB as `[][]byte` is 8 KB of `.data`; the
+  same bytes as `[]byte`, `[]string` or a `//go:embed` string are none).
+- **Fix shape:** one flat `[]byte` with an offset table, `[]string`, or `//go:embed` into a
+  `string`; fonts stored as strings.
+- **Confirm:** the `data` column of `-size short`, before and after.
+- **Source:** [Differences from Go] (globals); `tinygo-best-practices`
+  `references/tinygo-memory-and-size.md` (measurements). §3.
 
 ### TG-SIZE — Size is measured, and big wins are taken first
 - **Confirm:** `tinygo build -target=<board> -size short` (or `-size full` per package).
@@ -331,7 +338,7 @@ Names". These apply unchanged, except where a rule above takes precedence (for e
 
 ---
 
-## Ports from Arduino, Arduboy, ESP-IDF and Moddable
+## Ports from Arduino, Arduboy, ESP-IDF, Moddable and C game SDKs
 
 ### PORT-BEHAVIOR — Observable behavior matches the original
 - **Look for:** serial output format and rounding, timing and schedules, debounce, analog
@@ -377,10 +384,35 @@ Names". These apply unchanged, except where a rule above takes precedence (for e
 - **Source:** `tinygo-port` skill §5–§6 and its two references; TinyGo
   `src/machine/machine_esp32*`, `src/runtime/runtime_esp32*.go`.
 
+### PORT-C-SEMANTICS — C arithmetic and evaluation order are kept
+- **Look for:** in a port from C or C++: `short` or `unsigned char` values that wrap,
+  turned into `int`; time differences on `uint32` microseconds compared without the
+  original's signed cast (`(int)(Time() - t) > n`); `float` math (`sinf`, `atan2f`,
+  `powf`) kept in `float64`; a call whose arguments both draw random numbers (or have other
+  side effects), ported in another order than the original compiler evaluated them; slots
+  of an object array reset as a whole where the C set only some fields; a quirk of the
+  original changed without a note.
+- **Why:** each changes values without a compile error, and in a game the difference grows
+  frame after frame.
+- **Confirm:** compare with the original compiled on the host, with a stub header, the
+  same random generator and a scripted input, by checksums of the state per frame.
+- **Source:** `tinygo-port` skill §3, §4 and §8; `references/c-games-to-tinygo.md`.
+
+### PORT-ASSETS — Third-party pictures, data and titles are cleared
+- **Look for:** a port of permissively licensed code that ships pictures, logos, level
+  or music data, or a title that belong to someone else (characters from films, a
+  commercial game's logo or sprites, levels from another game); parts of the original
+  under another license (a GPL directory in an Unlicense SDK).
+- **Why:** the license of the code does not cover assets its author does not own.
+- **Fix shape:** leave the asset or the game out, or draw a replacement at the same size
+  and frame count and rename the title; list it in PORTING.md.
+- **Source:** `tinygo-port` skill §9; `references/c-games-to-tinygo.md` (Assets and
+  rights).
+
 ### PORT-LICENSE — The original's license and notice are kept
 - **Look for:** code translated from a licensed original (Arduino library, Arduboy game,
   ESP-IDF or a component, Moddable module or example) with no notice; LGPL code (the
   Moddable runtime and its sensor drivers) translated into a package released under a
   different license; CC BY examples ported without attribution; code with no license
   redistributed.
-- **Source:** `tinygo-port` skill §8; the original project's license.
+- **Source:** `tinygo-port` skill §9; the original project's license.

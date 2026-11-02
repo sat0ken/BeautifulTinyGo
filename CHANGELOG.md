@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.5.0 (2026-10-30)
+
+From porting 19 PicoLibSDK games to ESP32 boards and the browser
+(github.com/sat0ken/tinygo-esp32-cyd).
+
+- `tinygo-best-practices`:
+  - §3 and `references/tinygo-memory-and-size.md`: a constant table stays in flash only
+    when it is flat. Measured with the TinyGo 0.43.0 release build for `pico` and
+    `esp32-generic`: 8 KB of bytes as `[][]byte`, or as structs with a `[]byte` field, is
+    8 KB of `.data`; as `[]byte`, `[]string` or a `//go:embed` string, none. One tinyfont
+    0.7.0 font (FreeSans Bold 9pt) costs 3.6 KB of RAM. Large binary data goes in with
+    `//go:embed`; a flash budget per board, with build tags for large assets.
+  - §8: a frame buffer of 8-bit palette indices when RGB565 does not fit, with the
+    numbers from an ESP32 without PSRAM.
+- `tinygo-port`:
+  - New §8 and `references/c-games-to-tinygo.md`: C games that run their own loop on a
+    console SDK keep the loop on a compatibility package with the SDK's API; C semantics
+    to carry over (integer widths, unsigned time, `float32` functions, the evaluation
+    order of arguments, reused slots, quirks); comparing the port with the original
+    compiled on the host, frame by frame, by checksums; third-party assets; memory and
+    flash.
+  - §3: the frame-by-frame comparison. §4: C's `float` and argument order.
+  - §9 (licensing, was §8): pictures, data and titles are licensed apart from the code.
+  - `references/arduboy-to-koebiten.md`: tables of sprite pointers must not become
+    `[][]byte`.
+- `tinygo-review`: two new rules, 48 in all (PORT-C-SEMANTICS, PORT-ASSETS);
+  TG-CONST-DATA covers tables of slices.
+
 ## 0.4.0 (2026-10-27)
 
 - `tinygo-port` also ports ESP-IDF programs and Moddable SDK programs.
